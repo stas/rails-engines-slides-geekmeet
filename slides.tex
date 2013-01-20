@@ -1,0 +1,231 @@
+\documentclass[compress]{beamer}
+
+\beamertemplatetransparentcovered
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}
+{\leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.3333\paperwidth,left]{}%
+      \insertshortinstitute
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.3333\paperwidth,center]{}%
+      \insertframenumber{} / \inserttotalframenumber
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=.3333\paperwidth,right]{}%
+      \insertshortdate{}
+      \;
+    \end{beamercolorbox}
+  }%
+}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{minted}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\usetheme[light,accent=violet]{solarized}
+
+\usepackage{fontspec}
+\setmainfont[Mapping=tex-text]{Source Sans Pro}
+\setmonofont[Mapping=tex-text]{Inconsolata}
+
+\graphicspath{{./images/}}
+
+\title{On Rails Engines.}
+\subtitle{How to profit, test and deploy.}
+
+\author{Stas Sușcov (\href{mailto:stas@nerd.ro}{stas@nerd.ro})}
+\date{January 26th, 2013}
+
+\institute{GeekMeet \#14, Cluj-Napoca, Transylvania}
+
+\begin{document}
+
+% ----------------------------------------------------------------------------
+% *** Titlepage <<<
+% ----------------------------------------------------------------------------
+\maketitle
+% ----------------------------------------------------------------------------
+% *** END of Titlepage >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{About Stas}
+
+\begin{itemize}[<+->]
+  \item a \href{http://stas.nerd.ro}{nerd}
+  \item picky developer
+  \item interests: web/operations
+  \item on Ruby since 2011
+  \item (\Heart (food wine cycling))
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Selfish self-promotion}
+  \begin{center}
+    \huge We started \emph{Coursewa.re} in 2012, which is a SaaS social learning environment.
+    \\
+    \small Lots of experience I am sharing today comes from building this platform.
+    \colorbox{solarizedBase3}{\includegraphics[height=2cm]{courseware.png}}
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{The story}
+
+\begin{itemize}[<+->]
+  \item started as a Rails project
+  \item business requirements started to change very quickly
+  \item project use-cases started to vary
+  \item maintenance time started to grow (tests, updates \& such)
+  \item development got slower (the bigger the codebase, the noisier it gets)
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Identify the issue}
+
+\begin{itemize}[<+->]
+  \item stop looking at your code, that is \emph{not} your problem, here is why?!
+    \begin{itemize}
+      \item unless you do not have plenty of cash, you will spend lots of resources to win some speed
+      \item unless you do not have time constraints, doing some refactoring can help
+      \item unless you love refactoring, you will want to work on features rather rewriting components/tests
+    \end{itemize}
+  \item look at the code organization
+    \begin{itemize}
+      \item because running the \emph{test suite} for 30 minutes is not fun!
+      \item because your CI will love fast builds
+      \item because your backed developers do not care about pull requests related to assets or views
+      \item because at some point you will want an API for your app, and some OAuth, and that better be not the same old controller
+    \end{itemize}
+  \item none of the above?! then I am wrong and you should look at your code
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+    \huge My point is that building a modular/components-based codebase is faster, cheaper and easier.
+    \\
+    \small Sure it needs some know-how, but hey, you were not born programming, you learned that too!
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Looking at Rails Engines}
+
+\begin{itemize}[<+->]
+  \item pros
+    \begin{itemize}
+      \item every Rails app is basically an engine, which ensures no integration issues
+        \begin{itemize}
+          \item migrations will run fine
+          \item mount it and leverage from any defined routes
+          \item inherit any engine resource to customize/change the behaviour
+        \end{itemize}
+      \item all your Rails gems will play nice with engines
+      \item Bundle it in your Gemfile, it is just another gem in the end
+      \item engine has its own tests, reduces testing time
+      \item codebase gets smaller, easier to follow / assign across teams
+    \end{itemize}
+  \item cons
+    \begin{itemize}
+      \item testing engines might not be so straight
+      \item engines are not yet first class Rails citizens, get ready to patch things along the way
+      \item the \emph{dummy app} issue
+      \item not very popular, you get better at engines by working with engines
+    \end{itemize}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+    \huge Overall: you will love it, unless your app complexity/functionality is not the subject.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+  \huge Questions please\ldots
+  \\
+  Thank you for your time.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Online resources worth checking}
+
+\begin{itemize}
+  \item Rails Engine Docs -- \href{http://edgeapi.rubyonrails.org/classes/Rails/Engine.html}{edgeapi.rubyonrails.org/classes/Rails/Engine.html}
+  \item Writing a Rails Engine by Erik Michael-Ober -- \href{http://www.youtube.com/watch?v=Rvxcc46fox0}{youtube.com/watch?v=Rvxcc46fox0}
+  \item Rails Engines in real world
+    \begin{itemize}
+      \item Forem gem -- \href{https://github.com/radar/forem}{github.com/radar/forem}
+      \item Spree gem -- \href{https://github.com/spree}{github.com/spree}
+      \item Travis-CI -- \href{https://github.com/travis-ci}{github.com/travis-ci}
+    \end{itemize}
+  \item These slides -- \href{https://github.com/stas/rails-engines-slides-geekmeet}{github.com/stas/rails-engines-slides-geekmeet}
+\end{itemize}
+
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+\end{document}
