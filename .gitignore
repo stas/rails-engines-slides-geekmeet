@@ -38,3 +38,4 @@
 /public/system/*
 /spec/tmp/*
 **.orig
+*/*/spec/dummy
