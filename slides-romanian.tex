@@ -332,7 +332,7 @@ oricărei aplicații Rails.
 
 Pentru testare, un engine, are nevoie de o \emph{aplicație de test}.
 Și aici sunt două opțiuni:
-\begin{itemize}
+\begin{itemize}[<+->]
   \item generează aplicația de test și păstreaz-o în directorul \textbf{spec}
   \item scrie un generator care crează aplicația de test și automatizează acest proces
 \end{itemize}
@@ -433,6 +433,32 @@ Engine-urile sunt ca gem-urile, trebuie adăugate în fișierul \texttt{Gemfile}
   \begin{center}
   \huge Sfaturi.
   \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Re-definirea rutelor}
+\begin{itemize}
+  \item Pentru a adapta rutele unui engine, trebuie modificat router-ul acestuia
+    \\
+    \texttt{gmapp/config/routes.rb}
+    \begin{minted}[fontsize=\tiny,gobble=6]{ruby}
+      Gmengine::Engine.routes.draw do
+        get "posts/new", :as => 'publish'
+        get "posts/index", :as => 'all'
+      end
+
+      Courseware::Application.routes.draw do
+        # Mount the Gmengine routes
+        mount Gmengine::Engine => '/'
+      end
+    \end{minted}
+\end{itemize}
 \end{frame}
 % ----------------------------------------------------------------------------
 % *** END of Frame >>>

@@ -115,7 +115,7 @@
     \begin{itemize}
       \item unless you do not have plenty of cash, you will spend lots of resources to win some speed
       \item unless you do not have time constraints, doing some refactoring can help
-      \item unless you love refactoring, you will want to work on features rather rewriting components/tests
+      \item unless you love refactoring, you will want to work on features rather than rewriting components/tests
     \end{itemize}
   \item look at the code organization
     \begin{itemize}
@@ -331,7 +331,7 @@ than for a regular Rails app.
 
 A Rails engine requires a separate \emph{dummy} app in order to be tested.
 There are two options here:
-\begin{itemize}
+\begin{itemize}[<+->]
   \item generate the app and carry it over in your \textbf{spec} directory
   \item write a generator that will bootstrap an app before running tests
 \end{itemize}
@@ -432,6 +432,32 @@ Engines are pretty much gems, just update your \texttt{Gemfile} to start using i
   \begin{center}
   \huge Some tips.
   \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Re-defining routes}
+\begin{itemize}
+  \item In order to customize engine routes, you will need to work with engine router:
+    \\
+    \texttt{gmapp/config/routes.rb}
+    \begin{minted}[fontsize=\tiny,gobble=6]{ruby}
+      Gmengine::Engine.routes.draw do
+        get "posts/new", :as => 'publish'
+        get "posts/index", :as => 'all'
+      end
+
+      Courseware::Application.routes.draw do
+        # Mount the Gmengine routes
+        mount Gmengine::Engine => '/'
+      end
+    \end{minted}
+\end{itemize}
 \end{frame}
 % ----------------------------------------------------------------------------
 % *** END of Frame >>>
