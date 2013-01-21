@@ -75,7 +75,6 @@
 % *** Frame <<<
 % ----------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Selfish self-promotion}
   \begin{center}
     \huge We started \emph{Coursewa.re} in 2012, which is a SaaS social learning environment.
     \\
@@ -163,7 +162,7 @@
         \end{itemize}
       \item all your Rails gems will play nice with engines
       \item Bundle it in your Gemfile, it is just another gem in the end
-      \item engine has its own tests, reduces testing time
+      \item engine carries it's own tests, reduces main app testing time
       \item codebase gets smaller, easier to follow / assign across teams
     \end{itemize}
   \item cons
@@ -370,7 +369,7 @@ We will be using RSpec. Here are the steps in order to get things ready:
       customize the task to run our dummy app generator before starting any test
       (see the next slide)
     \end{item}
-  \item install RSpec \texttt{rails generate rspec:install}
+  \item install RSpec: \texttt{rails generate rspec:install}
   \begin{item}
     tweak \texttt{spec/spec\_helper.rb} to load the dummy app for tests
     \inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=3,lastline=7]{ruby}{code/gmengine/spec/spec_helper.rb}
@@ -412,11 +411,107 @@ We will be using RSpec. Here are the steps in order to get things ready:
 \begin{frame}[fragile]
 \frametitle{Using a Rails engine}
 Engines are pretty much gems, just update your \texttt{Gemfile} to start using it.
+\\
+\small\texttt{gmapp/Gemfile}
+\begin{minted}[fontsize=\tiny,gobble=2]{ruby}
+  source :rubygems
 
-\begin{minted}[fontsize=\tiny,gobble=2]{bash}
-  ~$ cat Gemfile | ack gmengine
-  gem 'gmengine', :path => 'path/to/gmengine'
+  ...
+  gem 'gmengine', :path => '../gmengine'
+  ...
 \end{minted}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+  \huge Some tips.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Reusable fixtures}
+\begin{itemize}
+  \item in order to reuse available fixtures, make sure you update RSpec fixtures path
+    \\
+    \texttt{gmapp/spec/support/fixtures.rb}
+    \begin{minted}[fontsize=\tiny,gobble=6]{ruby}
+      RSpec.configure do |config|
+        config.fixture_path = ::Gmengine::Engine.root.join('spec', 'fixtures')
+      end
+    \end{minted}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Reusable factories with Fabrication}
+\begin{itemize}
+  \item if you are using Fabrication gem to generate factories
+  \item you can inherit all the fabricators defined in your engine
+    \texttt{gmapp/spec/support/fabrication.rb}
+    \begin{minted}[fontsize=\tiny,gobble=6]{ruby}
+      Fabrication.configure do |config|
+        config.fabricator_path = [
+          'spec/fabricators',
+          # Load engine fabricators
+          Gmengine::Engine.root.join(
+          'spec', 'fabricators').relative_path_from(Gmengine::Application.root)
+        ]
+      end
+    \end{minted}
+  \item \href{http://www.fabricationgem.org/#!configuration}{Fabrication gem configuration page}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Deploying using GitHub OAuth tokens}
+\begin{itemize}
+  \item provisioning an infrastructure in order to deploy engines might be less pleasant
+  \item you can help it a bit if you are on GitHub:
+    \begin{itemize}
+        \begin{item} create a new authorization token
+          \begin{minted}[fontsize=\tiny,gobble=12]{bash}
+            ~$ curl -u 'USERNAME' -d '{"scopes":["repo"],"note":"Key to use at deploys"}' \
+            https://api.github.com/authorizations
+          \end{minted}
+        \end{item}
+
+        \begin{item} now add it to the \texttt{gmapp/Gemfile}
+          \begin{minted}[fontsize=\tiny,gobble=12]{ruby}
+            source :rubygems
+
+            ...
+            gem 'gmengine', :git => 'https://TOKEN:x-oauth-basic@github.com/USER/gmengine.git'
+            ...
+          \end{minted}
+        \end{item}
+    \end{itemize}
+  \item doing this basically removes any need of deploy keys / ssh access keys
+  \item \href{http://developer.github.com/v3/oauth/#oauth-authorizations-api}{GitHub Authorizations API page}
+\end{itemize}
 \end{frame}
 % ----------------------------------------------------------------------------
 % *** END of Frame >>>
