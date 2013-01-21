@@ -1,0 +1,562 @@
+\documentclass[compress]{beamer}
+
+\beamertemplatetransparentcovered
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}
+{\leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.3333\paperwidth,left]{}%
+      \insertshortinstitute
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.3333\paperwidth,center]{}%
+      \insertframenumber{} / \inserttotalframenumber
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=.3333\paperwidth,right]{}%
+      \insertshortdate{}
+      \;
+    \end{beamercolorbox}
+  }%
+}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{minted}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\usetheme[light]{solarized}
+
+\usepackage{fontspec}
+\setmainfont[Mapping=tex-text]{Source Sans Pro}
+\setmonofont[Mapping=tex-text]{Inconsolata}
+
+\graphicspath{{./images/}}
+
+\title{Despre Rails Engines}
+\subtitle{Ce câștigi, cum testăm, cum lansăm.}
+
+\author{Stas Sușcov (\href{mailto:stas@nerd.ro}{stas@nerd.ro})}
+\date{26 Ianuarie, 2013}
+
+\institute{GeekMeet \#14, Cluj-Napoca, Transilvania}
+
+\begin{document}
+
+% ----------------------------------------------------------------------------
+% *** Titlepage <<<
+% ----------------------------------------------------------------------------
+\maketitle
+% ----------------------------------------------------------------------------
+% *** END of Titlepage >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Despre mine}
+
+\begin{itemize}[<+->]
+  \item un \href{http://stas.nerd.ro}{nerd}
+  \item dezvoltator pretențios și pedant
+  \item interese: web/operations
+  \item pe Ruby din 2011
+  \item (\Heart (papa vin bicicletă))
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+    \huge În 2012 am început proiectul \emph{Coursewa.re}, o platformă SaaS pentru a crea medii educaționale.
+    \\
+    \small Multe lucruri despre care voi povesti astăzi vin din experiența mea lucrând la această platformă.
+    \\
+    \colorbox{solarizedBase3}{\includegraphics[height=2cm]{courseware.png}}
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Povestea}
+
+\begin{itemize}[<+->]
+  \item am început ca un proiect banal pe Rails
+  \item cerințele funcționalităților au început să se schimbe destul de rapid
+  \item au început să apară potențiale situații care variau de la ce am pornit
+  \item timpul dedicat întreținerii codului a început să crească (teste, actualizări, etc\ldots)
+  \item randamentul a scăzut (cu cât crește arhiva cu cod, cu atât e mai mult de lucru)
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Identificarea problemei}
+
+\begin{itemize}[<+->]
+  \item am încetat să dau vina pe cod, \emph{nu} consider codul motivul, iată de ce?!
+    \begin{itemize}
+      \item optimizarea nu-și merită resursele atât timp cât nu ești o firmă ce dispune de acele resurse
+      \item „refactorizarea” poate ajuta atâta vreme cât nu ai presiunea timpului
+      \item cel mai des ești interesat să „livrezi” funcționalități noi mai mult decât să „refactorizezi”
+    \end{itemize}
+  \item am început să mă uit peste organizarea codului
+    \begin{itemize}
+      \item pentru că 30 de minute pentru a rula \emph{suita cu teste} nu e fun!
+      \item pentru că serviciul de CI trebuie să fie rapid
+      \item pentru că nu toți dezvoltatorii sunt interesați ce fac colegii lor cu JavaScript-ul sau HTML-ul
+      \item pentru că la un moment dat o să îți dorești un API cu OAuth la aplicația ta, și ar fi bine să nu fie parte din același controler vechi
+    \end{itemize}
+  \item dar poate nu zic bine și greșesc, și problema e în cod.
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+    \huge Ce încerc eu să spun este că adaptarea unui model modular/component pentru arhiva de cod, e mai ieftin, rapid și eficient.
+    \\
+    \small Sigur că e nevoie de experiență, însă ei, toate se pot învăța.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{O privire asupra Rails Engines}
+
+\begin{itemize}[<+->]
+  \item plusuri
+    \begin{itemize}
+      \item fiecare aplicație de Rails practic e un engine, astfel sunt excluse problemele de integrare
+        \begin{itemize}
+          \item migrările vor fi preluate și rulate
+          \item rutele pot fi modificate și montate aparte
+          \item orice resursă a unui engine poate fi derivată și adaptată
+        \end{itemize}
+      \item gem-urile create pentru Rails sunt perfect compatibile
+      \item se folosește Bundle pentru „instalare” odată ce adaugi engine-ul în Gemfile
+      \item engine-ul poate conține suita proprie de teste, astfel timpul de rulare a testelor per aplicație se reduce
+      \item arhiva de cod devine mai mică, mai simplă de urmărit / distribuit în echipă
+    \end{itemize}
+  \item minusuri
+    \begin{itemize}
+      \item testarea unui engine e mai puțin banală
+      \item engine-urile nu sunt încă considerate prioritare, așteaptă-te să rezolvi erori pe parcurs
+      \item „faza” \emph{aplicației de test}
+      \item nu sunt foarte populare, devii mai bun doar lucrând cu ele
+    \end{itemize}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+    \huge Concluzia mea: e o soluție bună la organizarea unui proiect dacă acesta răspunde criteriilor unui proiect dinamic.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Crearea unui engine}
+
+\begin{center}
+  \begin{tiny}
+    Există două tipuri de engine-uri:
+    \\
+    \textbf{Stânga:} „montabile”, engine foarte apropiat de o aplicație Rails completă, are route, controlere, etc \ldots
+    \\
+    \textbf{Dreapta:} simple, foarte apropiat ca structură de un gem normal; ideal pentru crearea gem-urilor specifice Rails (generatoare, asset-uri, etc\ldots)
+    \\
+    \textbf{Sfat:} evitați folosirea caracterelor \texttt{-} sau \texttt{\_} în numele unui engine.
+  \end{tiny}
+\end{center}
+
+\begin{columns}
+  \begin{column}{0.6\textwidth}
+    \begin{minted}[fontsize=\tiny,gobble=6]{bash}
+      ~$ rails plugin new gmengine --skip-test-unit --mountable
+      create  README.rdoc
+      create  Rakefile
+      create  gmengine.gemspec
+      create  MIT-LICENSE
+      create  Gemfile
+      create  app
+      create  app/controllers/gmengine/application_controller.rb
+      create  app/helpers/gmengine/application_helper.rb
+      create  app/views/layouts/gmengine/application.html.erb
+      create  app/assets/images/gmengine
+      create  config/routes.rb
+      create  lib/gmengine.rb
+      create  lib/tasks/gmengine_tasks.rake
+      create  lib/gmengine/version.rb
+      create  lib/gmengine/engine.rb
+      create  app/assets/stylesheets/gmengine/application.css
+      create  app/assets/javascripts/gmengine/application.js
+      create  script
+      create  script/rails
+         run  bundle install
+    \end{minted}
+  \end{column}
+
+  \begin{column}{0.4\textwidth}
+    \begin{minted}[fontsize=\tiny,gobble=6]{bash}
+      ~$ rails plugin new gmengine --skip-test-unit
+      create  README.rdoc
+      create  Rakefile
+      create  gmengine.gemspec
+      create  MIT-LICENSE
+      create  Gemfile
+      create  lib/gmengine.rb
+      create  lib/tasks/gmengine_tasks.rake
+      create  lib/gmengine/version.rb
+         run  bundle install
+    \end{minted}
+    \end{column}
+  \end{columns}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{O privirea mai în detaliu asupra unui engine „montabil”}
+
+Două fișiere răspund pentru comportamentul unui gem drept engine:
+\begin{itemize}
+    \begin{item}
+      \texttt{gmengine/lib/gmengine.rb}
+      \inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=0,lastline=0]{ruby}{code/gmengine/lib/gmengine.rb}
+    \end{item}
+    \begin{item}
+      \texttt{gmengine/lib/gmengine/engine.rb}
+      \inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=0,lastline=0]{ruby}{code/gmengine/lib/gmengine/engine.rb}
+    \end{item}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Folosirea unui engine}
+
+Pentru crearea resurselor într-un engine, se procedează la fel ca și în cazul
+oricărei aplicații Rails.
+\begin{itemize}
+    \begin{item}
+      Generarea unui model
+      \begin{minted}[fontsize=\tiny,gobble=6]{bash}
+        ~$ rails g model post title:string content:text
+        invoke  active_record
+        create    db/migrate/20130120140937_create_gmengine_posts.rb
+        create    app/models/gmengine/post.rb
+      \end{minted}
+    \end{item}
+    \begin{item}
+      Generarea unui controler
+      \begin{minted}[fontsize=\tiny,gobble=6]{bash}
+        ~$ rails g controller posts new index
+        create  app/controllers/gmengine/posts_controller.rb
+        route  get "posts/index"
+        route  get "posts/new"
+        invoke  erb
+        create    app/views/gmengine/posts
+        create    app/views/gmengine/posts/new.html.erb
+        create    app/views/gmengine/posts/index.html.erb
+        invoke  helper
+        create    app/helpers/gmengine/posts_helper.rb
+        invoke    rspec
+        create      spec/helpers/gmengine/posts_helper_spec.rb
+        invoke  assets
+        invoke    js
+        create      app/assets/javascripts/gmengine/posts.js
+        invoke    css
+        create      app/assets/stylesheets/gmengine/posts.css
+      \end{minted}
+    \end{item}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Testarea unui engine}
+
+Pentru testare, un engine, are nevoie de o \emph{aplicație de test}.
+Și aici sunt două opțiuni:
+\begin{itemize}
+  \item generează aplicația de test și păstreaz-o în directorul \textbf{spec}
+  \item scrie un generator care crează aplicația de test și automatizează acest proces
+\end{itemize}
+
+Prima opțiune nu este deloc \emph{DRY} și (părerea personală) conceptual este greșită.
+Până apare Rails v4.0, mai jos găsiți un astfel de generator.
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Generator pentru crearea aplicației de test}
+
+\texttt{gmengine/lib/gmengine/generators/dummy\_generator.rb}
+\inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=0,lastline=0]{ruby}{code/gmengine/lib/gmengine/generators/dummy_generator.rb}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Pregătirea unui engine pentru testare}
+
+Vom folosi RSpec, mai jos sunt pașii necesari pentru pregătirea proiectului:
+\begin{itemize}
+  \item adaugăm \texttt{rspec-rails} la fișierul \textbf{gemspec}
+    \begin{item}
+      creăm comanda Rake care rulează testele și o modificăm să folosească generatorul nostru
+      (vezi următoarea pagină)
+    \end{item}
+  \item instalăm RSpec: \texttt{rails generate rspec:install}
+  \begin{item}
+    modificăm \texttt{spec/spec\_helper.rb} pentru a încărca aplicația generată în loc la codul implicit generat de RSpec
+    \inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=3,lastline=7]{ruby}{code/gmengine/spec/spec_helper.rb}
+  \end{item}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \texttt{gmengine/Rakefile}
+  \inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=26,lastline=0]{ruby}{code/gmengine/Rakefile}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Testarea rutelor / controler-ului}
+  Tot timpul trebuie folosit parametrul \texttt{:use\_route} cu numele engine-ului.
+  \\
+  \small\texttt{gmengine/spec/controllers/gmengine/post\_controller\_spec.rb}
+  \inputminted[fontsize=\tiny,gobble=0,linenos=true,firstline=0,lastline=0]{ruby}{code/gmengine/spec/controllers/gmengine/posts_controller_spec.rb}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Folosirea unui engine}
+Engine-urile sunt ca gem-urile, trebuie adăugate în fișierul \texttt{Gemfile} pentru a putea fi folosite, atât.
+\\
+\small\texttt{gmapp/Gemfile}
+\begin{minted}[fontsize=\tiny,gobble=2]{ruby}
+  source :rubygems
+
+  ...
+  gem 'gmengine', :path => '../gmengine'
+  ...
+\end{minted}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+  \huge Sfaturi.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Date de test refolosibile}
+\begin{itemize}
+  \item pentru a putea refolosi datele de test (fixtures), trebuie actualizată calea folosită de RSpec
+    \\
+    \texttt{gmapp/spec/support/fixtures.rb}
+    \begin{minted}[fontsize=\tiny,gobble=6]{ruby}
+      RSpec.configure do |config|
+        config.fixture_path = ::Gmengine::Engine.root.join('spec', 'fixtures')
+      end
+    \end{minted}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Refolosirea datelor pre-create cu gem-ul Fabrication}
+\begin{itemize}
+  \item dacă folosiți gem-ul Fabrication pentru pre-crearea datelor de test
+  \item definițiile se pot prelua și în aplicația părinte
+    \texttt{gmapp/spec/support/fabrication.rb}
+    \begin{minted}[fontsize=\tiny,gobble=6]{ruby}
+      Fabrication.configure do |config|
+        config.fabricator_path = [
+          'spec/fabricators',
+          # Load engine fabricators
+          Gmengine::Engine.root.join(
+          'spec', 'fabricators').relative_path_from(Gmengine::Application.root)
+        ]
+      end
+    \end{minted}
+  \item \href{http://www.fabricationgem.org/#!configuration}{pagina web cu setările gem-ului Fabrication}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}[fragile]
+\frametitle{Lansarea aplicației folosind GitHub și cheia OAuth}
+\begin{itemize}
+  \item lansarea aplicațiilor cu engine-uri poate fi obositor (chei ssh pe server, etc\ldots)
+  \item dacă folosești GitHub, se poate simplifica un pic procesul:
+    \begin{itemize}
+        \begin{item} crează o cheie nouă folosind API-ul de autorizări OAuth
+          \begin{minted}[fontsize=\tiny,gobble=12]{bash}
+            ~$ curl -u 'USERNAME' -d '{"scopes":["repo"],"note":"Key to use at deploys"}' \
+            https://api.github.com/authorizations
+          \end{minted}
+        \end{item}
+
+        \begin{item} acum folosește cheia în fișierul \texttt{gmapp/Gemfile}
+          \begin{minted}[fontsize=\tiny,gobble=12]{ruby}
+            source :rubygems
+
+            ...
+            gem 'gmengine', :git => 'https://TOKEN:x-oauth-basic@github.com/USER/gmengine.git'
+            ...
+          \end{minted}
+        \end{item}
+    \end{itemize}
+  \item acest lucru practic te va scuti de chei ssh, parole sau alte proceduri de securitate
+  \item \href{http://developer.github.com/v3/oauth/#oauth-authorizations-api}{pagina web pentru autorizările API GitHub}
+\end{itemize}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+  \begin{center}
+  \huge Întrebări vă rog\ldots
+  \\
+  Mulțumesc pentru timpul acordat.
+  \end{center}
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------
+% *** Frame <<<
+% ----------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Mai multe resurse ce merită atenția}
+
+\begin{itemize}
+  \item Documentația pentru Rails Engines
+    \begin{itemize}
+      \item Guide -- \href{http://guides.rubyonrails.org/engines.html}{guides.rubyonrails.org/engines.html}
+      \item API -- \href{http://edgeapi.rubyonrails.org/classes/Rails/Engine.html}{edgeapi.rubyonrails.org/classes/Rails/Engine.html}
+    \end{itemize}
+  \item Writing a Rails Engine by Erik Michael-Ober -- \href{http://www.youtube.com/watch?v=Rvxcc46fox0}{youtube.com/watch?v=Rvxcc46fox0}
+  \item Exemple de Rails Engine în producție
+    \begin{itemize}
+      \item Forem gem -- \href{https://github.com/radar/forem}{github.com/radar/forem}
+      \item Spree gem -- \href{https://github.com/spree}{github.com/spree}
+      \item Travis-CI -- \href{https://github.com/travis-ci}{github.com/travis-ci}
+    \end{itemize}
+  \item Această prezentare -- \href{https://github.com/stas/rails-engines-slides-geekmeet}{github.com/stas/rails-engines-slides-geekmeet}
+\end{itemize}
+
+\end{frame}
+% ----------------------------------------------------------------------------
+% *** END of Frame >>>
+% ----------------------------------------------------------------------------
+
+\end{document}
