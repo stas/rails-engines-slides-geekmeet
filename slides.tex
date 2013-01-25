@@ -113,18 +113,18 @@
 \begin{itemize}[<+->]
   \item stop looking at your code, that is \emph{not} your problem, here is why?!
     \begin{itemize}
-      \item unless you do not have plenty of cash, you will spend lots of resources to win some speed
-      \item unless you do not have time constraints, doing some refactoring can help
-      \item unless you love refactoring, you will want to work on features rather than rewriting components/tests
+      \item if you have plenty of cash (usually you don't), you can and probably want to optimize
+      \item if you have no time constraints (usually you do), doing some refactoring can help
+      \item if you love refactoring (usually you don't), you will end up rewriting components/tests and delay feature releases
     \end{itemize}
   \item look at the code organization
     \begin{itemize}
       \item because running the \emph{test suite} for 30 minutes is not fun!
       \item because your CI will love fast builds
-      \item because your backed developers do not care about pull requests related to assets or views
+      \item because some developers do not care about pull requests related to assets or views
       \item because at some point you will want an API for your app, and some OAuth, and that better be not the same old controller
     \end{itemize}
-  \item none of the above?! then I am wrong and you should look at your code
+  \item none of the above?! So I am wrong and you should look at your code
 \end{itemize}
 \end{frame}
 % ----------------------------------------------------------------------------
@@ -154,7 +154,7 @@
 \begin{itemize}[<+->]
   \item pros
     \begin{itemize}
-      \item every Rails app is basically an engine, which ensures no integration issues
+      \item every Rails app is basically an engine, which ensures no integration issues:
         \begin{itemize}
           \item migrations will run fine
           \item mount it and leverage from any defined routes
